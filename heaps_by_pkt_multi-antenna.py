@@ -62,21 +62,7 @@ def spectra_from_heap(heap):
     spectra = np.sum(np.square(heap.astype(float)), axis=(3,2))  
     return spectra.T
 
-if __name__ == '__main__':
-
-    if(len(sys.argv) != 2):
-        print('Usage: heaps_by_pkt.py PCAP_FILE')
-        exit(1)
-
-    velapcap = rdpcap(sys.argv[1])
-    pkt_set = np.zeros((100000, 1031), dtype=int)
-    pktcnt = 0
-    for pkt in velapcap:
-        pkt = read_spead_pkt(raw(pkt).encode('hex'))
-        pkt_set[pktcnt, :] = pkt
-        pktcnt += 1
-        if(pktcnt>=100000):
-            break
+def spectra_from_antenna(pkt_set):
     # Heap shape:   (nchans per substream,  spectra per heap,   2(re, im?),  2(re im?)  )
     #               (256,                   256,                2,           2          ) 
     unique_heaps = np.unique(pkt_set[:, 0])
@@ -89,13 +75,43 @@ if __name__ == '__main__':
             current_ts = current_heap[j, 7:].reshape((256, 2, 2))
             current_ts = np.sum(np.square(current_ts.astype(float)), axis=(2,1))
             heap_spectra[256*i:256*i+256, current_heap[j, 2]/1024] = current_ts
+    return heap_spectra
 
-    plt.imshow(heap_spectra, aspect='auto')
-    plt.show()
-    plt.plot(np.sum(heap_spectra, axis = 1))
-    plt.show()
-    ave_sum = np.convolve(np.sum(heap_spectra, axis = 1),np.ones(20)*0.05, mode='valid')
-    plt.plot(ave_sum)
-    plt.show()
 
-    np.save('heap_spectra.npy', heap_spectra)
+if __name__ == '__main__':
+
+    if(len(sys.argv) != 2):
+        print('Usage: heaps_by_pkt.py PCAP_FILE')
+        exit(1)
+
+    source_IPs = []
+
+    velapcap = rdpcap(sys.argv[1])
+    pkt_set = np.zeros((100000, 1031*len(source_IPs)), dtype=int)
+    pktcnts = np.zeros(len(source_IPs))
+
+
+    for pkt in velapcap:
+    
+        pktsetno = source_IPs.index(pkt[IP].src)
+
+        pkt = read_spead_pkt(raw(pkt).encode('hex'))
+        pkt_set[pktcnt[pktsetno], pktsetno*1024:pktsetno*1024+1024] = pkt
+        pktcnt[pktsetno] += 1
+        if(pktcnt>=100000):
+            break
+
+    for i in range(0,len(source_IPs)):
+        heap_spectra = spectra_from_antenna(pkt_set[:,i*1024:i*1024+1024])
+        np.save('heap_spectra_'+str(i)+'.npy', heap_spectra)
+
+
+    # plt.imshow(heap_spectra, aspect='auto')
+    # plt.show()
+    # plt.plot(np.sum(heap_spectra, axis = 1))
+    # plt.show()
+    # ave_sum = np.convolve(np.sum(heap_spectra, axis = 1),np.ones(20)*0.05, mode='valid')
+    # plt.plot(ave_sum)
+    # plt.show()
+
+    # np.save('heap_spectra.npy', heap_spectra)
