@@ -48,8 +48,12 @@ def read_spead_pkt(hexraw):
     pkt[4] =  int(spead_payload[84:96], 16)     # timestamp
     pkt[5] =  int(spead_payload[100:112], 16)   # feng_ID
     pkt[6] =  int(spead_payload[116:128], 16)   # frequency
-    pkt[7:] = np.fromstring(spead_payload[192:].decode('hex'), dtype='int8')
-    return pkt
+    if(len(np.fromstring(spead_payload[192:].decode('hex'), dtype='int8'))<1024):
+        print 'problem pkt'
+        return pkt
+    else:
+        pkt[7:] = np.fromstring(spead_payload[192:].decode('hex'), dtype='int8')
+        return pkt
 
 def spectra_from_heap(heap):
     # Heap shape:   (nchans per substream,  spectra per heap,   2(re, im?),  2(re im?)  )
@@ -68,10 +72,13 @@ if __name__ == '__main__':
     pkt_set = np.zeros((100000, 1031), dtype=int)
     pktcnt = 0
     for pkt in velapcap:
+        if(pktcnt<200000):
+            pktcnt += 1
+            continue
         pkt = read_spead_pkt(raw(pkt).encode('hex'))
-        pkt_set[pktcnt, :] = pkt
+        pkt_set[pktcnt-200000, :] = pkt
         pktcnt += 1
-        if(pktcnt>=100000):
+        if(pktcnt>=300000):
             break
     # Heap shape:   (nchans per substream,  spectra per heap,   2(re, im?),  2(re im?)  )
     #               (256,                   256,                2,           2          ) 
@@ -86,9 +93,12 @@ if __name__ == '__main__':
             current_ts = np.sum(np.square(current_ts.astype(float)), axis=(2,1))
             heap_spectra[256*i:256*i+256, current_heap[j, 2]/1024] = current_ts
 
-    np.save('heap_spectra.npy', heap_spectra)
+    plt.imshow(heap_spectra, aspect='auto')
+    plt.show()
+    plt.plot(np.sum(heap_spectra, axis = 1))
+    plt.show()
+    ave_sum = np.convolve(np.sum(heap_spectra, axis = 1),np.ones(20)*0.05, mode='valid')
+    plt.plot(ave_sum)
+    plt.show()
 
-#    plt.imshow(heap_spectra, aspect='auto')
-#    plt.show()
-#    plt.plot(np.sum(heap_spectra, axis = 1))
-#    plt.show()
+    np.save('heap_spectra.npy', heap_spectra)
