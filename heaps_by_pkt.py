@@ -85,7 +85,10 @@ if __name__ == '__main__':
             current_ts = current_heap[j, 7:].reshape((256, 2, 2))
             current_ts = np.sum(np.square(current_ts.astype(float)), axis=(2,1))
             heap_spectra[256*i:256*i+256, current_heap[j, 2]/1024] = current_ts
-    plt.imshow(heap_spectra, aspect='auto')
-    plt.show()
-    plt.plot(np.sum(heap_spectra, axis = 1))
-    plt.show()
+
+    np.save('heap_spectra.npy', heap_spectra)
+
+#    plt.imshow(heap_spectra, aspect='auto')
+#    plt.show()
+#    plt.plot(np.sum(heap_spectra, axis = 1))
+#    plt.show()
