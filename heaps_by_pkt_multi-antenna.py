@@ -90,24 +90,19 @@ if __name__ == '__main__':
     pkt_set = np.zeros((35000, 1031*len(source_IPs)), dtype=int)
     pktcnts = np.zeros(len(source_IPs), dtype=int)
 
-
     for pkt in velapcap:
 
         pktsetno = int(source_IPs.index(pkt[IP].src))
         
         pkt = read_spead_pkt(raw(pkt).encode('hex'))
-        print pktcnts[pktsetno]
-        print pktsetno
 
-        print pkt_set[pktcnts[pktsetno], pktsetno*1024:pktsetno*1024+1024].shape
-
-        pkt_set[pktcnts[pktsetno], pktsetno*1024:pktsetno*1024+1024] = pkt
+        pkt_set[pktcnts[pktsetno], pktsetno*1031:pktsetno*1031+1031] = pkt
         pktcnts[pktsetno] += 1
         if(pktcnts[pktsetno]>=35000):
             continue
 
     for i in range(0,len(source_IPs)):
-        heap_spectra = spectra_from_antenna(pkt_set[:,i*1024:i*1024+1024])
+        heap_spectra = spectra_from_antenna(pkt_set[:,i*1031:i*1031+1031])
         np.save('heap_spectra_'+str(i)+'.npy', heap_spectra)
 
 
