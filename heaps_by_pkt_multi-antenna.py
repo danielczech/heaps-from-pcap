@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
         pkt_set[pktcnts[pktsetno], pktsetno*1031:pktsetno*1031+1031] = pkt
         pktcnts[pktsetno] += 1
-        if(pktcnts[pktsetno]>=35000):
+        if(pktcnts[pktsetno]>35000):
             continue
 
     for i in range(0,len(source_IPs)):
