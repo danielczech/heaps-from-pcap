@@ -84,22 +84,25 @@ if __name__ == '__main__':
         print('Usage: heaps_by_pkt.py PCAP_FILE')
         exit(1)
 
-    source_IPs = []
+    source_IPs = ['10.100.6.5', '10.100.6.21', '10.100.6.41', '10.100.6.49']
 
     velapcap = rdpcap(sys.argv[1])
-    pkt_set = np.zeros((100000, 1031*len(source_IPs)), dtype=int)
+    pkt_set = np.zeros((35000, 1031*len(source_IPs)), dtype=int)
     pktcnts = np.zeros(len(source_IPs))
 
 
     for pkt in velapcap:
     
-        pktsetno = source_IPs.index(pkt[IP].src)
+        pktsetno = int(source_IPs.index(pkt[IP].src))
 
         pkt = read_spead_pkt(raw(pkt).encode('hex'))
-        pkt_set[pktcnt[pktsetno], pktsetno*1024:pktsetno*1024+1024] = pkt
-        pktcnt[pktsetno] += 1
-        if(pktcnt>=100000):
-            break
+        print pktcnts[pktsetno]
+        print pktsetno
+        
+        pkt_set[pktcnts[pktsetno], pktsetno*1024:pktsetno*1024+1024] = pkt
+        pktcnts[pktsetno] += 1
+        if(pktcnts[pktsetno]>=35000):
+            continue
 
     for i in range(0,len(source_IPs)):
         heap_spectra = spectra_from_antenna(pkt_set[:,i*1024:i*1024+1024])

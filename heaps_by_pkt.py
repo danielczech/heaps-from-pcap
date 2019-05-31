@@ -64,38 +64,43 @@ def spectra_from_heap(heap):
 
 if __name__ == '__main__':
 
-    if(len(sys.argv) != 2):
-        print('Usage: heaps_by_pkt.py PCAP_FILE')
-        exit(1)
+    # if(len(sys.argv) != 2):
+    #     print('Usage: heaps_by_pkt.py PCAP_FILE')
+    #     exit(1)
 
-    velapcap = rdpcap(sys.argv[1])
-    pkt_set = np.zeros((100000, 1031), dtype=int)
-    pktcnt = 0
-    for pkt in velapcap:
-        pkt = read_spead_pkt(raw(pkt).encode('hex'))
-        pkt_set[pktcnt, :] = pkt
-        pktcnt += 1
-        if(pktcnt>=100000):
-            break
-    # Heap shape:   (nchans per substream,  spectra per heap,   2(re, im?),  2(re im?)  )
-    #               (256,                   256,                2,           2          ) 
-    unique_heaps = np.unique(pkt_set[:, 0])
-    heap_set = np.zeros((len(unique_heaps), 262146), dtype=int)
-    heap_spectra = np.zeros((len(unique_heaps)*256, 256))
-    for i in range(0, len(unique_heaps)):
-        current_heap = pkt_set[np.where(pkt_set[:,0]==unique_heaps[i])[0]]
-        current_heap = current_heap[np.argsort(current_heap[:,2])]
-        for j in range(current_heap.shape[0]):        
-            current_ts = current_heap[j, 7:].reshape((256, 2, 2))
-            current_ts = np.sum(np.square(current_ts.astype(float)), axis=(2,1))
-            heap_spectra[256*i:256*i+256, current_heap[j, 2]/1024] = current_ts
+    # velapcap = rdpcap(sys.argv[1])
+    # pkt_set = np.zeros((100000, 1031), dtype=int)
+    # pktcnt = 0
+    # for pkt in velapcap:
+    #     pkt = read_spead_pkt(raw(pkt).encode('hex'))
+    #     pkt_set[pktcnt, :] = pkt
+    #     pktcnt += 1
+    #     if(pktcnt>=100000):
+    #         break
+    # # Heap shape:   (nchans per substream,  spectra per heap,   2(re, im?),  2(re im?)  )
+    # #               (256,                   256,                2,           2          ) 
+    # unique_heaps = np.unique(pkt_set[:, 0])
+    # heap_set = np.zeros((len(unique_heaps), 262146), dtype=int)
+    # heap_spectra = np.zeros((len(unique_heaps)*256, 256))
+    # for i in range(0, len(unique_heaps)):
+    #     current_heap = pkt_set[np.where(pkt_set[:,0]==unique_heaps[i])[0]]
+    #     current_heap = current_heap[np.argsort(current_heap[:,2])]
+    #     for j in range(current_heap.shape[0]):        
+    #         current_ts = current_heap[j, 7:].reshape((256, 2, 2))
+    #         current_ts = np.sum(np.square(current_ts.astype(float)), axis=(2,1))
+    #         heap_spectra[256*i:256*i+256, current_heap[j, 2]/1024] = current_ts
 
-    plt.imshow(heap_spectra, aspect='auto')
-    plt.show()
-    plt.plot(np.sum(heap_spectra, axis = 1))
-    plt.show()
-    ave_sum = np.convolve(np.sum(heap_spectra, axis = 1),np.ones(20)*0.05, mode='valid')
+    # plt.imshow(heap_spectra, aspect='auto')
+    # plt.show()
+    # plt.plot(np.sum(heap_spectra, axis = 1))
+    # plt.show()
+
+    heap_spectra = np.load('heap_spectra.npy')
+    #ave_sum = np.convolve(np.sum(heap_spectra, axis = 1),np.ones(20)*0.05, mode='valid')
+    ave_sum = np.sum(heap_spectra, axis=1)
+    ave_sum = np.reshape(ave_sum, ((-1, 200)))
+    ave_sum = np.mean(ave_sum, axis=1)
     plt.plot(ave_sum)
     plt.show()
 
-    np.save('heap_spectra.npy', heap_spectra)
+    #np.save('heap_spectra.npy', heap_spectra)
