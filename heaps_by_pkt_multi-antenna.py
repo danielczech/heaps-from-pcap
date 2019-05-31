@@ -91,9 +91,12 @@ if __name__ == '__main__':
     pktcnts = np.zeros(len(source_IPs), dtype=int)
 
     for pkt in velapcap:
+        try:
+            pktsetno = int(source_IPs.index(pkt[IP].src))
+        except(IndexError):
+            print pktcnts
+            print 'issue'
 
-        pktsetno = int(source_IPs.index(pkt[IP].src))
-        
         pkt = read_spead_pkt(raw(pkt).encode('hex'))
 
         pkt_set[pktcnts[pktsetno], pktsetno*1031:pktsetno*1031+1031] = pkt
