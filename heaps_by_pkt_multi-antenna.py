@@ -1,7 +1,7 @@
 # Assemble and display the contents of MeerKAT SPEAD2 heaps from 
 # PCAP files. This version assembles packet by packet. 
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 from scapy.all import *
 from scapy.utils import *
@@ -88,17 +88,19 @@ if __name__ == '__main__':
 
     velapcap = rdpcap(sys.argv[1])
     pkt_set = np.zeros((35000, 1031*len(source_IPs)), dtype=int)
-    pktcnts = np.zeros(len(source_IPs))
+    pktcnts = np.zeros(len(source_IPs), dtype=int)
 
 
     for pkt in velapcap:
-    
-        pktsetno = int(source_IPs.index(pkt[IP].src))
 
+        pktsetno = int(source_IPs.index(pkt[IP].src))
+        
         pkt = read_spead_pkt(raw(pkt).encode('hex'))
         print pktcnts[pktsetno]
         print pktsetno
-        
+
+        print pkt_set[pktcnts[pktsetno], pktsetno*1024:pktsetno*1024+1024].shape
+
         pkt_set[pktcnts[pktsetno], pktsetno*1024:pktsetno*1024+1024] = pkt
         pktcnts[pktsetno] += 1
         if(pktcnts[pktsetno]>=35000):
