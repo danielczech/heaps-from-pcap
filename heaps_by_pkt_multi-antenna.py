@@ -77,44 +77,26 @@ def spectra_from_antenna(pkt_set):
             heap_spectra[256*i:256*i+256, current_heap[j, 2]/1024] = current_ts
     return heap_spectra
 
-
 if __name__ == '__main__':
-
     if(len(sys.argv) != 2):
         print('Usage: heaps_by_pkt.py PCAP_FILE')
         exit(1)
-
     source_IPs = ['10.100.6.5', '10.100.6.21', '10.100.6.41', '10.100.6.49']
-
     velapcap = rdpcap(sys.argv[1])
     pkt_set = np.zeros((35000, 1031*len(source_IPs)), dtype=int)
     pktcnts = np.zeros(len(source_IPs), dtype=int)
-
     for pkt in velapcap:
         try:
             pktsetno = int(source_IPs.index(pkt[IP].src))
         except(IndexError):
             print pktcnts
-            print 'issue'
-
+            print 'malformed?'
+            continue # Skip this packet
+        if(pktcnts[pktsetno]>=35000): 
+            continue # Skip packets once 35k obtained
         pkt = read_spead_pkt(raw(pkt).encode('hex'))
-
         pkt_set[pktcnts[pktsetno], pktsetno*1031:pktsetno*1031+1031] = pkt
         pktcnts[pktsetno] += 1
-        if(pktcnts[pktsetno]>35000):
-            continue
-
     for i in range(0,len(source_IPs)):
         heap_spectra = spectra_from_antenna(pkt_set[:,i*1031:i*1031+1031])
         np.save('heap_spectra_'+str(i)+'.npy', heap_spectra)
-
-
-    # plt.imshow(heap_spectra, aspect='auto')
-    # plt.show()
-    # plt.plot(np.sum(heap_spectra, axis = 1))
-    # plt.show()
-    # ave_sum = np.convolve(np.sum(heap_spectra, axis = 1),np.ones(20)*0.05, mode='valid')
-    # plt.plot(ave_sum)
-    # plt.show()
-
-    # np.save('heap_spectra.npy', heap_spectra)
