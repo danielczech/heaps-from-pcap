@@ -92,6 +92,9 @@ if __name__ == '__main__':
             print pktcnts
             print 'malformed?'
             continue # Skip this packet
+        except(ValueError):
+            print 'Unlisted source IP'
+            continue
         if(pktcnts[pktsetno]>=35000): 
             continue # Skip packets once 35k obtained
         pkt = read_spead_pkt(raw(pkt).encode('hex'))
