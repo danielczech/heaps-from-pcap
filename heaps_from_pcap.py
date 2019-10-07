@@ -8,6 +8,8 @@ from scapy.utils import *
 import re
 import sys
 
+NUM_PKTS = 100000
+
 def read_spead_pkt(hexraw):
     """
     Extract spead payload and header information from MeerKAT multicast 
@@ -65,17 +67,15 @@ if __name__ == '__main__':
         exit(1)
 
     velapcap = rdpcap(sys.argv[1])
-    pkt_set = np.zeros((100000, 1031), dtype=int)
+    pkt_set = np.zeros((NUM_PKTS, 1031), dtype=int)
     pktcnt = 0
     for pkt in velapcap:
         pkt = read_spead_pkt(raw(pkt).encode('hex'))
         pkt_set[pktcnt, :] = pkt
         pktcnt += 1
-        if(pktcnt>=100000):
+        if(pktcnt>=NUM_PKTS):
             break
 
-    # Heap shape:   (nchans per substream,  spectra per heap,   2(re, im?),  2(re im?)  )
-    #               (256,                   256,                2,           2          ) 
     unique_heaps = np.unique(pkt_set[:, 0])
     heap_set = np.zeros((len(unique_heaps), 262146), dtype=int)
     heap_spectra = np.zeros((len(unique_heaps)*256, 256))

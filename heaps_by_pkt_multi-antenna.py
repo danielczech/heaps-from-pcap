@@ -8,6 +8,8 @@ from scapy.utils import *
 import re
 import sys
 
+NUM_PKTS = 35000
+
 def read_spead_pkt(hexraw):
     """
     Extract spead payload and header information from MeerKAT multicast 
@@ -83,7 +85,7 @@ if __name__ == '__main__':
         exit(1)
     source_IPs = ['10.100.6.5', '10.100.6.21', '10.100.6.41', '10.100.6.49']
     velapcap = rdpcap(sys.argv[1])
-    pkt_set = np.zeros((35000, 1031*len(source_IPs)), dtype=int)
+    pkt_set = np.zeros((NUM_PKTS, 1031*len(source_IPs)), dtype=int)
     pktcnts = np.zeros(len(source_IPs), dtype=int)
     for pkt in velapcap:
         try:
@@ -95,8 +97,8 @@ if __name__ == '__main__':
         except(ValueError):
             print 'Unlisted source IP'
             continue
-        if(pktcnts[pktsetno]>=35000): 
-            continue # Skip packets once 35k obtained
+        if(pktcnts[pktsetno]>=NUM_PKTS): 
+            continue # Skip packets once NUM_PKTS obtained
         pkt = read_spead_pkt(raw(pkt).encode('hex'))
         pkt_set[pktcnts[pktsetno], pktsetno*1031:pktsetno*1031+1031] = pkt
         pktcnts[pktsetno] += 1
